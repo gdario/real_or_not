@@ -14,12 +14,19 @@ def process_text(txt):
     return txt.lower()
 
 
-def clean_df(df):
-    df['keyword'] = df.keyword.fillna('missing')
+def clean_df(df, keep_unique=True, paste_keyword=True):
+    df['keyword2'] = df.keyword.fillna('missing')
     if 'target' in df.columns:
         df['str_target'] = df.target.apply(lambda x: str(x))
-        df['keyword_target'] = df.keyword.str.cat(df.str_target)
+        df['keyword_target'] = df.keyword2.str.cat(df.str_target)
     df['clean_text'] = df.text.apply(process_text)
+    if keep_unique:
+        df = df.drop(['id', 'location', 'str_target', 'text', 'keyword2'],
+                     axis=1)
+        df = df[~df.duplicated()]
+    if paste_keyword:
+        df['keyword'] = df.keyword.str.replace('%20', ' ')
+        df['clean_text'] = df.keyword.str.cat(df.clean_text, sep=' ')
     return df
 
 
